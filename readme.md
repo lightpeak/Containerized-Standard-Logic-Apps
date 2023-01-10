@@ -1,25 +1,21 @@
-# 🧙‍♂️ Containerized Logic Apps (Standard) with XSLT mappings directly in source control
+# Containerized Logic Apps (Standard) with XSLT mappings directly in source control
 
 ![](./Assets/logicapps.png)
 
-This repository explains how to setup an Azure Logic App (Standard) with an XML transformation action.
+This readme explains how to setup an Azure Logic App (Standard) running in a Docker container. The workflow will contain an XML operation.
 
-The XSLT map wil be defined directly in the source code of the Logic App project, meaning,there's no need of an Integration Account in Azure!
+The referenced XSLT map wil be defined directly in the source code of the Logic App project. There's no longer a dependency on Azure Integration Accounts.
 
-After that we will run the Logic App (Standard) inside a docker container locally and expose a port (80).
-
-I based myself on two official Microsoft blogs: 
+The information on this page mainly comes from two official Microsoft blogs: 
 1. [Running logic apps in a docker container](https://techcommunity.microsoft.com/t5/azure-developer-community-blog/azure-tips-and-tricks-how-to-run-logic-apps-in-a-docker/ba-p/3545220).
 2. [XSLT transformation support](https://techcommunity.microsoft.com/t5/integrations-on-azure-blog/net-framework-assembly-support-added-to-azure-logic-apps/ba-p/3669120).
 
-> Previously, customers were able to upload XSLT maps to an Integration Account where a consumption-based logic app could execute that map via an out of box action. Microsoft is now bringing similar capabilities to Azure Logic Apps (Standard), but without a dependency on the Integration Account.
-
-Another advantage is that you can define and run multiple workflows in one Logic App. The same for artifacts (like an XSLT map), these can be defined once and used by all the workflows in your Logic App project.
+Another advantage is that you can define and run multiple workflows in one and the same Logic App (just like Azure Functions!). Artifacts (like an XSLT mapping) can also be defined once and accessed by all the workflows in the Logic App project 💪.
 
 ## Creating the Logic App Project
-First of all, currently you can only create **Standard** Logic Apps through the Azure Portal or VS**Code**.
+First of all, currently, you can only create **Standard** Logic Apps through the Azure Portal or VSCode. You need Visual Studio Code for this advanced use-case.
 
-In order to create a logic app you will have to download the following extensions:
+You need the following VSCode Extensions to be installed:
 
 1. [Azure Functions](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurefunctions)
 2. [Azure Logic Apps (Standard)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurelogicapps)
@@ -30,8 +26,7 @@ You also need Docker Desktop (or Rancher Desktop) for building and running your 
 
 ### Creation
 
-
-Using the extensions, create a new Logic App (Standard) project:
+Create a new Logic App (Standard) project:
 
 ![creation of logic app](./Assets/creation.png)
 
@@ -54,7 +49,9 @@ Create a simple workflow. For e.g. an HTTP POST request where you post an XML in
 
 ![workflow](./Assets/workflow.png)
 
-As you can see in the screenshot above, you place the mapping in the ```Maps``` folder inside the ```Artifacts``` folder. You can then point to this specific mapping through Name parameter.
+As you can see in the screenshot above, you place the mapping in the ```Maps``` folder. You can then point to this specific mapping through Name parameter of the XML operation.
+
+### Overview
 
 When you right-click the workflow.json file, you also have an ```Overview``` option.
 
@@ -64,3 +61,29 @@ Be aware that this screen will only be able to fetch the right information when 
 
 ![overview](./Assets//overview.png)
 
+### Running the project
+First, you need to add your Azure Storage connection string in the ```local.settings.json``` file:
+
+```
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": ".....connection string here.....",
+    .
+    .
+    .
+  }
+}
+```
+
+After that need to start Azurite for emulating the Azure Storage:
+
+![](./Assets/commandpalette.png)
+
+![](./Assets/startazurite.png)
+
+Now you have everything to run the project locally:
+
+![](./Assets/startdebugging.png)
+
+![](./Assets/terminal.png)
