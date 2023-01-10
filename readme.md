@@ -1,5 +1,7 @@
 # 🧙‍♂️ Containerized Logic Apps (Standard) with XSLT mappings directly in source control
 
+![](./Assets/logicapps.png)
+
 This repository explains how to setup an Azure Logic App (Standard) with an XML transformation action.
 
 The XSLT map wil be defined directly in the source code of the Logic App project, meaning,there's no need of an Integration Account in Azure!
@@ -47,4 +49,18 @@ You can use [this code](../LA%20Standard%20Containers%20Demo/LASDemo.csproj) as 
 If you have the extension installed, you can edit your workflow inside VSCode by right-clicking the ```workflow.json``` file and choosing ```Open in Designer```:
 
 ![open in designer](./Assets/opendesigner.png)
+
+Create a simple workflow. For e.g. an HTTP POST request where you post an XML in the body ([example input](./Assets//example.xml)) and convert it to HTML using an XSLT map ([myMap.xslt](./Artifacts/Maps/myMap.xslt)):
+
+![workflow](./Assets/workflow.png)
+
+As you can see in the screenshot above, you place the mapping in the ```Maps``` folder inside the ```Artifacts``` folder. You can then point to this specific mapping through Name parameter.
+
+When you right-click the workflow.json file, you also have an ```Overview``` option.
+
+Here you can find the Run History and Callback URL.
+
+Be aware that this screen will only be able to fetch the right information when the project is **actually running locally**:
+
+![overview](./Assets//overview.png)
 
