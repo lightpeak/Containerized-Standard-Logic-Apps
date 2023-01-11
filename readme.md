@@ -121,3 +121,42 @@ Run the container with the following command. This makes the Logic App accessibl
 docker run -e WEBSITE_HOSTNAME=localhost -p 8080:80 local/workflowcontainer
 ```
 
+Now for the most difficult part. We need to discover the URL for the HTTP trigger. To do that, we first need to get the masterKey to gain access to the Logic App. You can find this key in the Azure Storage Account that you've indicated in the Dockerfile. Go to the Azure Storage Account and navigate to Containers/azure-webjobs-secrets/{id} and open the host.json file:
+
+![](./Assets/webjobs-secrets.png)
+
+There, we can find the masterKey:
+```
+  "masterKey": {
+    "name": "master",
+    "value": "l6vZj8J3aLEZzOfTV7SiiP2H2eru96ajlzZNpoXm5WScABAoP1tlEg==",
+    "encrypted": false
+  }
+```
+
+1. Copy the value of the masterKey.
+
+2. Open Postman.
+
+3. Create a new POST request for
+```http://localhost:8080/runtime/webhooks/workflow/api/management/workflows/{your logic app workflow name}/triggers/manual/listCallbackUrl?api-version=2020-05-01-preview&code={masterKey value}``` and send it.
+
+The results from the POST contain the URL of the HTTP trigger and the query parameters to add to the URL:
+```
+{
+    "value": "https://localhost:443/api/LAS_Containerized/..................",
+    "method": "POST",
+    "basePath": "https://localhost/api/LAS_Containerized/triggers/manual/invoke",
+    "queries": {
+        "api-version": "2022-05-01",
+        "sp": "/triggers/manual/run",
+        "sv": "1.0",
+        "sig": "6NkWBwLMukPgn8foQsnvLtDsX7jpLEB-dMprTZ8Be-w"
+    }
+}
+```
+
+You can use that URL value to construct the HTTP trigger that is running in the container. Don't forget to replace the localhost:443 port with the port we configured for the container: 8080.
+```http://localhost:8080/api/{your logic app workflow name}/triggers/manual/invoke?api-version=2022-05-01-preview&sp={value for sp}&sv={value for sv}&sig={value for sig}```
+
+![](./Assets/postman-container.png)
