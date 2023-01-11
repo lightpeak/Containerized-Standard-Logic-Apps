@@ -10,7 +10,7 @@ The information on this page mainly comes from two official Microsoft blogs:
 1. [Running logic apps in a docker container](https://techcommunity.microsoft.com/t5/azure-developer-community-blog/azure-tips-and-tricks-how-to-run-logic-apps-in-a-docker/ba-p/3545220).
 2. [XSLT transformation support](https://techcommunity.microsoft.com/t5/integrations-on-azure-blog/net-framework-assembly-support-added-to-azure-logic-apps/ba-p/3669120).
 
-Another advantage is that you can define and run multiple workflows in one and the same Logic App (just like Azure Functions!). Artifacts (like an XSLT mapping) can also be defined once and accessed by all the workflows in the Logic App project 💪.
+Another advantage is that you can define and run multiple workflows in one and the same Logic App (just like Azure Functions!). Artifacts (like an XSLT mapping) can also be defined once and accessed by all workflows in the Logic App project 💪.
 
 ## Creating the Logic App Project
 First of all, currently, you can only create **Standard** Logic Apps through the Azure Portal or VSCode. You need Visual Studio Code for this advanced use-case.
@@ -24,8 +24,6 @@ You need the following VSCode Extensions to be installed:
 
 You also need Docker Desktop (or Rancher Desktop) for building and running your container and Postman for sending requests.
 
-### Creation
-
 Create a new Logic App (Standard) project:
 
 ![creation of logic app](./Assets/creation.png)
@@ -38,9 +36,9 @@ This is necessary for a NuGet-based approach. This part is necessary to run it i
 ![csproj](./Assets/csproject.png)
 
 Make sure to target .NET 6 and Azure Functions v4.
-You can use [this code](../LA%20Standard%20Containers%20Demo/LASDemo.csproj) as a boilerplate. Don't forget to align the Workflow name with yours!
+You can use [this code](LASDemo.csproj) as a boilerplate. Don't forget to align the Workflow name with yours!
 
-### Adding an XML Operation
+## Adding an XML Operation
 If you have the extension installed, you can edit your workflow inside VSCode by right-clicking the ```workflow.json``` file and choosing ```Open in Designer```:
 
 ![open in designer](./Assets/opendesigner.png)
@@ -51,17 +49,17 @@ Create a simple workflow. For e.g. an HTTP POST request where you post an XML in
 
 As you can see in the screenshot above, you place the mapping in the ```Maps``` folder. You can then point to this specific mapping through Name parameter of the XML operation.
 
-### Overview
+## Overview
 
 When you right-click the workflow.json file, you also have an ```Overview``` option.
 
 Here you can find the Run History and Callback URL.
 
-Be aware that this screen will only be able to fetch the right information when the project is **actually running locally**:
+Be aware that this screen will only be able to fetch information when the project is **actually running locally**:
 
 ![overview](./Assets//overview.png)
 
-### Running the project
+## Running the project locally
 First, you need to add your Azure Storage connection string in the ```local.settings.json``` file:
 
 ```
@@ -76,7 +74,7 @@ First, you need to add your Azure Storage connection string in the ```local.sett
 }
 ```
 
-After that need to start Azurite for emulating the Azure Storage:
+After that, start Azurite for emulating the Azure Storage:
 
 ![](./Assets/commandpalette.png)
 
@@ -87,3 +85,39 @@ Now you have everything to run the project locally:
 ![](./Assets/startdebugging.png)
 
 ![](./Assets/terminal.png)
+
+![](./Assets/postman-locally.png)
+
+## Running the project locally **in a Docker container**
+
+Make sure Rancher Desktop (or Docker Desktop) is running.
+
+Continue by creating a ```Dockerfile``` in the root folder:
+```
+FROM mcr.microsoft.com/azure-functions/dotnet:4-appservice
+
+ENV AzureWebJobsStorage=.....your connection string here.....
+ENV AZURE_FUNCTIONS_ENVIRONMENT Development
+ENV AzureWebJobsScriptRoot=/home/site/wwwroot
+ENV AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+ENV FUNCTIONS_V2_COMPATIBILITY_MODE=true
+
+COPY ./bin/release/net6.0/publish/ /home/site/wwwroot
+```
+
+Then build and publish the project with the following two commands:
+```
+dotnet build -c release
+dotnet publish -c release
+```
+
+Create the container image:
+```
+docker build --tag local/workflowcontainer .
+```
+
+Run the container with the following command. This makes the Logic App accessible through localhost:8080
+```
+docker run -e WEBSITE_HOSTNAME=localhost -p 8080:80 local/workflowcontainer
+```
+
